@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,8 +18,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('posts', [\App\Http\Controllers\PostController::class, 'index']);
     Route::get('posts/{id}', [\App\Http\Controllers\PostController::class, 'show']);
     Route::post('posts', [\App\Http\Controllers\PostController::class, 'store']);
-    Route::put('posts', [\App\Http\Controllers\PostController::class, 'update']);
+    Route::put('posts/{id}', [\App\Http\Controllers\PostController::class, 'update']);
     Route::delete('posts', [\App\Http\Controllers\PostController::class, 'destroy']);
 
     Route::post('comments', [\App\Http\Controllers\CommentController::class, 'store']);
 });
+
+Route::post('/login', [\App\Http\Controllers\Controller::class, 'login']);

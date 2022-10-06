@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Post;
+use Dflydev\DotAccessData\Data;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +33,7 @@ class PostController extends Controller
         $validated = $request->validate([
             'title' => 'required|unique:posts|max:255',
             'body' => 'required',
+            'image' => 'required|string'
         ]);
 
         $post  = new Post();
@@ -69,10 +71,20 @@ class PostController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $validated = $request->validate([
+            'title' => 'sometimes|max:255',
+            'body' => 'sometimes',
+            'image' => 'sometimes|string'
+        ]);
+
         $post  = DB::table('posts')
             ->where('id', $id)
-            ->whereNotNull('deleted_at')
+            ->whereNull('deleted_at')
             ->first();
+
+        $post->title = $validated['title'];
+        $post->body = $validated['body'];
+        $post->image = $validated['image'];
 
         return response()->json($post);
     }

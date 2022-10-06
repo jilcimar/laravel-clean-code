@@ -3,6 +3,8 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Validation\ValidationException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -46,5 +48,23 @@ class Handler extends ExceptionHandler
         $this->reportable(function (Throwable $e) {
             //
         });
+    }
+
+    public function render($request, Throwable $e)
+    {
+        if ($request->is('api/*')) {
+            if ($e instanceof ValidationException) {
+                $errors = [];
+                foreach ($e->errors() as $error) {
+                    $errors[] = $error[0];
+                }
+
+                return response()->json(['errors' => $errors], $e->status);
+            } elseif ($e instanceof HttpException) {
+                return response()->json(['errors' => [$e->getMessage()]], $e->getStatusCode());
+            }
+
+            return parent::render($request, $e);
+        }
     }
 }
