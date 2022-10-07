@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Post\StoreFormRequest;
+use App\Http\Requests\Post\UpdateFormRequest;
 use App\Models\Post;
-use Dflydev\DotAccessData\Data;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 
 class PostController extends Controller
 {
@@ -28,20 +27,11 @@ class PostController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return JsonResponse
      */
-    public function store(Request $request)
+    public function store(StoreFormRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|unique:posts|max:255',
-            'body' => 'required',
-            'image' => 'required|string'
-        ]);
+        $validated = $request->validated();
 
-        $post  = new Post();
-        $post->title = $validated['title'];
-        $post->body = $validated['body'];
-        $post->image = $validated['image'];
-        $post->user_id = auth()->user()->id;
-        $post->save();
+        Post::create(array_merge($validated, ['user_id' => auth()->user()->id]));
 
         return response()->json('Post Cadastrado com sucesso');
     }
@@ -52,13 +42,8 @@ class PostController extends Controller
      * @param  int  $id
      * @return JsonResponse
      */
-    public function show($id)
+    public function show(Post $post)
     {
-        $post  = DB::table('posts')
-            ->where('id', $id)
-            ->whereNotNull('deleted_at')
-            ->first();
-
         return response()->json($post);
     }
 
@@ -69,22 +54,11 @@ class PostController extends Controller
      * @param  int  $id
      * @return JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(UpdateFormRequest $request, Post $post)
     {
-        $validated = $request->validate([
-            'title' => 'sometimes|max:255',
-            'body' => 'sometimes',
-            'image' => 'sometimes|string'
-        ]);
+        $validated = $request->validated();
 
-        $post  = DB::table('posts')
-            ->where('id', $id)
-            ->whereNull('deleted_at')
-            ->first();
-
-        $post->title = $validated['title'];
-        $post->body = $validated['body'];
-        $post->image = $validated['image'];
+        $post->update($validated);
 
         return response()->json($post);
     }
@@ -95,12 +69,8 @@ class PostController extends Controller
      * @param  int  $id
      * @return JsonResponse
      */
-    public function destroy($id)
+    public function destroy(Post $post)
     {
-        $post  = DB::table('posts')
-            ->where('id', $id)
-            ->whereNotNull('deleted_at')
-            ->first();
         $post->delete();
 
         return response()->json('Post deletado com sucesso');
