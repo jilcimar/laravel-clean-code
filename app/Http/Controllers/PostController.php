@@ -5,71 +5,41 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Post\StoreFormRequest;
 use App\Http\Requests\Post\UpdateFormRequest;
 use App\Models\Post;
+use App\Repositories\PostRepository;
 use Illuminate\Http\JsonResponse;
 
 class PostController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return JsonResponse
-     */
-    public function index()
-    {
-        $posts = Post::all();
+    private PostRepository $repository;
 
-        return  response()->json($posts);
+    public function __construct()
+    {
+        $this->repository = new PostRepository();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return JsonResponse
-     */
-    public function store(StoreFormRequest $request)
+    public function index(): JsonResponse
+    {
+        return  response()->json($this->repository->index());
+    }
+
+    public function store(StoreFormRequest $request): JsonResponse
     {
         $validated = $request->validated();
-
-        Post::create(array_merge($validated, ['user_id' => auth()->user()->id]));
-
-        return response()->json('Post Cadastrado com sucesso');
+        return response()->json($this->repository->store($validated));
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return JsonResponse
-     */
-    public function show(Post $post)
+    public function show(Post $post): JsonResponse
     {
         return response()->json($post);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return JsonResponse
-     */
-    public function update(UpdateFormRequest $request, Post $post)
+    public function update(UpdateFormRequest $request, Post $post): JsonResponse
     {
         $validated = $request->validated();
-
-        $post->update($validated);
-
-        return response()->json($post);
+        return response()->json($this->repository->update($validated, $post));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return JsonResponse
-     */
-    public function destroy(Post $post)
+    public function destroy(Post $post): JsonResponse
     {
         $post->delete();
 
